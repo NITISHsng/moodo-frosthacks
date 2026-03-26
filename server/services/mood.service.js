@@ -36,6 +36,32 @@ export const generateMoodScore = (features) => {
 };
 
 /**
+ * Create mood entry from AI service response
+ * Privacy: audio is processed and immediately discarded
+ * @param {string} userId - User ID
+ * @param {object} aiResult - AI service response
+ * @returns {object} Created mood entry
+ */
+export const createMoodEntryFromAI = async (userId, aiResult) => {
+  // Map AI response to mood entry
+  const moodEntry = await Mood.create({
+    user: userId,
+    source: "voice",
+    moodScore: aiResult.moodScore,
+    normalizedScore: aiResult.normalizedScore,
+    moodLabel: aiResult.moodLabel,
+    sentiment: aiResult.sentiment,
+    sentimentScore: aiResult.rawSentiment?.compound ?? null,
+    features: aiResult.features,
+    confidenceScore: aiResult.confidenceScore,
+    insight: aiResult.insight,
+    rawSentiment: aiResult.rawSentiment,
+  });
+
+  return moodEntry;
+};
+
+/**
  * Create mood entry with features
  */
 export const createMoodEntry = async (userId, features, text = null) => {
