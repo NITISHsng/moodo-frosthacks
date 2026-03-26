@@ -1,329 +1,161 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  TrendingDown, 
-  TrendingUp, 
-  ArrowRight, 
-  Zap, 
-  MessageSquare, 
-  BarChart3,
-  Flame,
-  Calendar,
-  Mic,
-  ShieldCheck,
-  Trash2,
-  Lock,
-  AlertCircle
-} from 'lucide-react';
-import VoiceRecorder from '../components/VoiceRecorder';
-import MoodChart from '../components/MoodChart';
-import AlertModal from '../components/AlertModal';
-import { cn } from '../lib/utils';
+import { ShieldCheck } from 'lucide-react';
+import { VoiceRecorder } from '../components';
+import { AlertModal } from '../components';
+import { DashboardHeader } from '../components';
+import { TextEmotionInput } from '../components';
 
+import { useMood, useAuth } from '../hooks';
+import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
-  const [lastResult, setLastResult] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [emotionText, setEmotionText] = useState('');
   const [isTextProcessing, setIsTextProcessing] = useState(false);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [mobileMode, setMobileMode] = useState('speak'); // 'speak' or 'text'
+
+  const { dashboard, getDashboard, analyzeMood } = useMood();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   
-  const moodHistory = [
-    { name: 'Mar 20', score: 7.2 },
-    { name: 'Mar 21', score: 6.8 },
-    { name: 'Mar 22', score: 5.5 },
-    { name: 'Mar 23', score: 4.8 },
-    { name: 'Mar 24', score: 4.2 },
-    { name: 'Mar 25', score: 3.8 },
-    { name: 'Mar 26', score: 4.5 },
-  ];
+  useEffect(() => {
+    getDashboard('7d');
+  }, [getDashboard]);
+
+  const moodHistory = dashboard?.entries || [];
+  const trendPercentage = dashboard?.trend || 0;
 
   const handleVoiceResult = (result) => {
-    setLastResult(result);
-    // Simulate privacy deletion logic
-    setIsDeleting(true);
-    setTimeout(() => setIsDeleting(false), 3000);
 
-    // Proactive Intervention Logic: 5-day decline check
-    const lastFive = moodHistory.slice(-5).map(h => h.score);
-    const isDeclining = lastFive.every((val, i) => i === 0 || val <= lastFive[i-1]);
+    // Refresh after a delay to get updated history
+    setTimeout(() => getDashboard('7d'), 1500);
     
-    if (result.moodScore < 5 || isDeclining) {
+    // Evaluate proactive alerts
+    if (result.moodScore < 5 || result.alert) {
       setTimeout(() => setShowAlert(true), 1500);
     }
+
+    // Navigate to the new nested child route
+    navigate('/dashboard/result', { state: { result } });
   };
 
-  const handleTextSubmit = (e) => {
+  const handleTextSubmit = async (e) => {
     e.preventDefault();
     if (!emotionText.trim()) return;
 
     setIsTextProcessing(true);
     
-    // Simulate text analysis
-    setTimeout(() => {
-      setIsTextProcessing(false);
+    try {
+      const data = await analyzeMood({ pitch: 0, jitter: 0, speech_rate: 0 }, emotionText);
+      
       handleVoiceResult({
         text: emotionText,
-        sentiment: 0.4,
-        features: {
-          pitch: "N/A (Text)",
-          energy: "N/A (Text)",
-          rate: "N/A (Text)"
-        },
-        moodScore: 6.5,
+        sentiment: data?.normalizedScore || 0.5,
+        features: { pitch: "N/A (Text)", energy: "N/A (Text)", rate: "N/A (Text)" },
+        moodScore: data?.moodScore || 5.0,
         source: 'text'
       });
       setEmotionText('');
-    }, 1500);
+    } catch (err) {
+      console.error("Text analysis error:", err);
+    } finally {
+      setIsTextProcessing(false);
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-bold font-display text-foreground">Hello, Nitish</h1>
-          <p className="text-muted-foreground">How are you feeling today? Let's check in.</p>
-        </div>
-        <div className="flex items-center gap-3 bg-card p-2 rounded-2xl border border-border shadow-sm">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 text-orange-600 rounded-xl font-bold text-sm">
-            <Flame className="w-4 h-4" />
-            5 Day Streak
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-xl font-bold text-sm">
-            <Calendar className="w-4 h-4" />
-            Mar 26, 2026
-          </div>
-        </div>
+    <div className="relative w-full h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
+      {/* Dynamic Background Textures & Lighting */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10 rounded-3xl">
+         <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
+         <div className="absolute bottom-10 left-1/4 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '12s' }} />
+         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 dark:opacity-20" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Recorder & Analysis */}
-        <div className="lg:col-span-5 space-y-8">
-          <VoiceRecorder onResult={handleVoiceResult} />
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ duration: 0.4 }}
+        className="z-10 flex-shrink-0 space-y-3"
+      >
+        <DashboardHeader streak={dashboard?.streak || 0} date={new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} />
+        
+        {/* Mobile Mode Selector */}
+        <div className="lg:hidden flex items-center justify-center">
+          <div className="inline-flex items-center gap-1 bg-gradient-to-r from-card to-card/80 p-1 rounded-2xl border border-border/60 shadow-lg backdrop-blur-sm">
+            <button
+              onClick={() => setMobileMode('speak')}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                mobileMode === 'speak' 
+                  ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md shadow-primary/20 scale-105' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
+            >
+              🎤 Speak
+            </button>
+            <button
+              onClick={() => setMobileMode('text')}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                mobileMode === 'text' 
+                  ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md shadow-primary/20 scale-105' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
+            >
+              ✍️ Text
+            </button>
+          </div>
+        </div>
+      </motion.div>
 
-          {/* Text Expression Box */}
-          <div className="bg-card rounded-3xl p-6 shadow-sm border border-border space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-primary" />
-              </div>
-              <h3 className="font-bold text-foreground">Express Your Emotion</h3>
-            </div>
-            <form onSubmit={handleTextSubmit} className="space-y-3">
-              <textarea 
-                value={emotionText}
-                onChange={(e) => setEmotionText(e.target.value)}
-                placeholder="Type how you're feeling right now..."
-                className="w-full h-24 p-4 bg-muted border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:bg-card transition-all outline-none text-sm resize-none"
-              />
-              <button 
-                type="submit"
-                disabled={isTextProcessing || !emotionText.trim()}
-                className="w-full py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold rounded-xl shadow-md shadow-primary/10 transition-all flex items-center justify-center gap-2"
-              >
-                {isTextProcessing ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>Analyze Emotion <ArrowRight className="w-4 h-4" /></>
-                )}
-              </button>
-            </form>
+      <motion.div 
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+        className="w-full z-10 flex-1 overflow-hidden flex flex-col"
+      >
+        {/* Desktop: Side by side */}
+        <div className="hidden lg:grid lg:grid-cols-2 gap-6 flex-1">
+          <div className={`h-full ${isTextProcessing || emotionText.trim() ? 'opacity-50 pointer-events-none' : ''}`}>
+            <VoiceRecorder 
+              onResult={handleVoiceResult}
+              onRecordingChange={setIsVoiceActive}
+            />
           </div>
 
-          <AnimatePresence mode="wait">
-            {lastResult ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-card rounded-3xl p-6 shadow-sm border border-border space-y-6"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-foreground flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-500" />
-                    {lastResult.source === 'text' ? 'Text Sentiment Analysis' : 
-                     lastResult.source === 'upload' ? 'Uploaded Audio Analysis' : 
-                     'Real-time Voice Analysis'}
-                  </h3>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Processed in 1.2s</span>
-                </div>
-
-                {/* Pipeline Visual */}
-                <div className="flex items-center justify-between px-4 py-3 bg-muted/50 rounded-2xl border border-border">
-                  {lastResult.source !== 'text' && (
-                    <>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Mic className="w-4 h-4 text-primary" />
-                        </div>
-                        <span className="text-[10px] font-bold text-muted-foreground">{lastResult.source === 'upload' ? 'FILE' : 'VOICE'}</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground/30" />
-                    </>
-                  )}
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <MessageSquare className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-[10px] font-bold text-muted-foreground">TEXT</span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground/30" />
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <BarChart3 className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-[10px] font-bold text-muted-foreground">SCORE</span>
-                  </div>
-                </div>
-
-                {/* Insight Section */}
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                    {lastResult.source === 'text' ? 'Input Text' : 'Insight'}
-                  </p>
-                  <p className="text-sm text-foreground italic leading-relaxed bg-muted p-4 rounded-2xl border border-border">
-                    "{lastResult.text}"
-                  </p>
-                </div>
-
-                {/* Features Grid */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="p-3 bg-muted rounded-2xl text-center">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Pitch</p>
-                    <p className="font-bold text-foreground">{lastResult.features.pitch}</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-2xl text-center">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Energy</p>
-                    <p className="font-bold text-foreground">{lastResult.features.energy}</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-2xl text-center">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Rate</p>
-                    <p className="font-bold text-foreground">{lastResult.features.rate}</p>
-                  </div>
-                </div>
-
-                {/* Privacy Deletion Demo */}
-                <div className="p-4 bg-card rounded-2xl border border-border overflow-hidden relative shadow-sm">
-                  <div className="flex items-center justify-between relative z-10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <ShieldCheck className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-foreground">Privacy Protocol</p>
-                        <p className="text-[10px] text-muted-foreground">Audio Deletion Logic Active</p>
-                      </div>
-                    </div>
-                    {isDeleting ? (
-                      <div className="flex items-center gap-2 text-destructive text-[10px] font-bold animate-pulse">
-                        <Trash2 className="w-3 h-3" />
-                        DELETING RAW AUDIO...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-primary text-[10px] font-bold">
-                        <ShieldCheck className="w-3 h-3" />
-                        AUDIO PURGED
-                      </div>
-                    )}
-                  </div>
-                  {isDeleting && (
-                    <motion.div 
-                      initial={{ width: '0%' }}
-                      animate={{ width: '100%' }}
-                      className="absolute bottom-0 left-0 h-1 bg-primary"
-                    />
-                  )}
-                </div>
-
-                {/* Sentiment & Mood Score */}
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 p-4 bg-primary/10 rounded-2xl border border-primary/20">
-                    <p className="text-[10px] font-bold text-primary/60 uppercase mb-1">Sentiment (VADER)</p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-primary text-xl">{lastResult.sentiment > 0 ? '+' : ''}{lastResult.sentiment}</span>
-                      <span className={cn(
-                        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
-                        lastResult.sentiment > 0 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                      )}>
-                        {lastResult.sentiment > 0 ? 'Positive' : 'Negative'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex-1 p-4 bg-primary/10 rounded-2xl border border-primary/20">
-                    <p className="text-[10px] font-bold text-primary/60 uppercase mb-1">Mood Score</p>
-                    <div className="flex items-end gap-2 text-primary">
-                      <span className="text-3xl font-bold font-display">{lastResult.moodScore}</span>
-                      <span className="opacity-60 text-sm mb-1">/ 10</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="placeholder"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="min-h-[200px] border-2 border-dashed border-border rounded-3xl flex flex-col items-center justify-center p-8 text-center space-y-4 bg-muted/50"
-              >
-                <div className="w-12 h-12 bg-card rounded-2xl flex items-center justify-center shadow-sm">
-                  <Mic className="text-muted-foreground/30 w-6 h-6" />
-                </div>
-                <p className="text-muted-foreground text-sm font-medium max-w-[200px] mx-auto">
-                  Start recording to see real-time emotional analysis
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Right Column: Trends & Architecture */}
-        <div className="lg:col-span-7 space-y-8">
-          {/* Trend Card */}
-          <div className="bg-card rounded-3xl p-8 shadow-sm border border-border space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold font-display text-foreground">Mood Trends</h3>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1 bg-destructive/10 text-destructive rounded-full text-xs font-bold">
-                  <TrendingDown className="w-3 h-3" />
-                  -12% this week
-                </div>
-                <button 
-                  onClick={() => window.dispatchEvent(new CustomEvent('changeTab', { detail: 'trends' }))}
-                  className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
-                >
-                  View Full <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="h-[300px]">
-              <MoodChart data={moodHistory} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-4">
-                <div className="w-10 h-10 bg-card rounded-xl flex items-center justify-center shadow-sm">
-                  <AlertCircle className="text-primary w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-bold text-foreground text-sm">Trend Alert</p>
-                  <p className="text-xs text-muted-foreground mt-1">We've noticed a downward trend over the last 5 days. Consider a check-in.</p>
-                </div>
-              </div>
-              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-4">
-                <div className="w-10 h-10 bg-card rounded-xl flex items-center justify-center shadow-sm">
-                  <Zap className="text-primary w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-bold text-foreground text-sm">Evening Insight</p>
-                  <p className="text-xs text-muted-foreground mt-1">Your mood typically dips in the evenings. Try some light meditation.</p>
-                </div>
-              </div>
-            </div>
+          <div className={`h-full ${isVoiceActive ? 'opacity-50 pointer-events-none' : ''}`}>
+            <TextEmotionInput 
+              value={emotionText}
+              onChange={(e) => setEmotionText(e.target.value)}
+              onSubmit={handleTextSubmit}
+              isProcessing={isTextProcessing}
+            />
           </div>
-
         </div>
-      </div>
+
+        {/* Mobile: Toggle between modes */}
+        <div className="lg:hidden flex-1">
+          {mobileMode === 'speak' ? (
+            <VoiceRecorder 
+              onResult={handleVoiceResult}
+              onRecordingChange={setIsVoiceActive}
+            />
+          ) : (
+            <TextEmotionInput 
+              value={emotionText}
+              onChange={(e) => setEmotionText(e.target.value)}
+              onSubmit={handleTextSubmit}
+              isProcessing={isTextProcessing}
+            />
+          )}
+        </div>
+
+        {/* Privacy Notice */}
+        <div className="flex items-center justify-center gap-2 px-4 py-2 mt-3 bg-muted/50 rounded-full text-[9px] md:text-[10px] font-medium text-muted-foreground uppercase tracking-tight w-fit mx-auto backdrop-blur-sm">
+          <ShieldCheck className="w-3 h-3 text-green-500" />
+          <span>Your words stay private • Only vibes are saved</span>
+        </div>
+      </motion.div>
 
       <AlertModal isOpen={showAlert} onClose={() => setShowAlert(false)} />
     </div>

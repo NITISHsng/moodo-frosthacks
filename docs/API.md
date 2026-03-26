@@ -54,11 +54,17 @@ Header: Authorization: Bearer <token>
 - **Header:** `Authorization: Bearer <token>`
 - **Returns:** `{ trend, fluctuation, confidence, message }`
 
+### Get Streak
+- **GET** `/mood/streak`
+- **Header:** `Authorization: Bearer <token>`
+- **Returns:** `{ streak }`
+- **Description:** Get user's current daily streak (consecutive days with mood entries)
+
 ### Get Dashboard
 - **GET** `/mood/dashboard?range=7d`
 - **Header:** `Authorization: Bearer <token>`
 - **Query:** `range` (7d|30d|90d)
-- **Returns:** `{ entries, averageMood, trend, fluctuation, alerts }`
+- **Returns:** `{ entries, averageMood, trend, fluctuation, alerts, streak }`
 
 ---
 

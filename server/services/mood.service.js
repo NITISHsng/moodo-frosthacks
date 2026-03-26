@@ -155,3 +155,50 @@ export const getMoodStats = async (userId, rangeInDays = 7) => {
     entryCount: entries.length,
   };
 };
+
+/**
+ * Calculate the user's current daily streak based on mood entries
+ */
+export const getUserStreak = async (userId) => {
+  const entries = await Mood.find({ user: userId })
+    .sort({ createdAt: -1 })
+    .select('createdAt');
+
+  if (!entries || entries.length === 0) return 0;
+
+  // Extract unique UTC dates (YYYY-MM-DD)
+  const uniqueDates = [...new Set(entries.map(e => {
+    const d = new Date(e.createdAt);
+    return d.toISOString().split('T')[0];
+  }))];
+
+  const todayDate = new Date();
+  const todayStr = todayDate.toISOString().split('T')[0];
+  
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+  // If the latest logged date isn't today or yesterday, the streak is 0
+  if (uniqueDates[0] !== todayStr && uniqueDates[0] !== yesterdayStr) {
+    return 0;
+  }
+
+  let streak = 0;
+  let currentDate = new Date(uniqueDates[0]); // Start counting from the most recent log
+
+  for (let i = 0; i < uniqueDates.length; i++) {
+    const d = uniqueDates[i];
+    const expectedStr = currentDate.toISOString().split('T')[0];
+
+    if (d === expectedStr) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1); // Move to previous day
+    } else {
+      break; // Streak broken
+    }
+  }
+
+  return streak;
+};
+
