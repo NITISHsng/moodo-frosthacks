@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import { xss } from "express-xss-sanitizer";
 
 import authRoutes from "./routes/authRoutes.js";
+import moodRoutes from "./routes/moodRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(cors({ origin: process.env.CLIENT_URL || "*", credentials: true }));
 
 // routes
 app.use("/api/auth", authRoutes);
+app.use("/api/mood", moodRoutes);
 
 // health check
 app.get("/api/health", (_req, res) => {

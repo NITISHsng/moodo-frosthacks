@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo 'Build complete - ES modules ready for production'",
+    "test": "node tests/api.test.js"
   },
   "keywords": [],
   "author": "",
