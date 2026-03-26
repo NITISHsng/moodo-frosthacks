@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Loader2, ShieldCheck, Upload, FileAudio } from 'lucide-react';
+import { Mic, Square, Loader2, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../lib/utils';
+import { cn } from '../../lib/utils';
 
-const VoiceRecorder = ({ onResult }) => {
+const VoiceRecorder = ({ onResult, onRecordingChange }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -16,7 +16,12 @@ const VoiceRecorder = ({ onResult }) => {
   const streamRef = useRef(null);
   const animationFrameRef = useRef(null);
 
-  // Real audio visualization
+  useEffect(() => {
+    if (onRecordingChange) {
+      onRecordingChange(isRecording || isProcessing);
+    }
+  }, [isRecording, isProcessing, onRecordingChange]);
+
   useEffect(() => {
     if (isRecording) {
       const startAudio = async () => {
@@ -50,16 +55,14 @@ const VoiceRecorder = ({ onResult }) => {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Calculate current volume for scaling
             let sum = 0;
             for (let i = 0; i < bufferLength; i++) {
               const amplitude = (dataArray[i] - 128) / 128;
               sum += amplitude * amplitude;
             }
             const rms = Math.sqrt(sum / bufferLength);
-            const volumeScale = Math.max(0.1, rms * 5); // Boost for visibility
+            const volumeScale = Math.max(0.1, rms * 5);
 
-            // Draw multi-layered waves
             const drawWave = (color, opacity, amplitudeMultiplier, frequencyMultiplier, offset) => {
               ctx.beginPath();
               ctx.lineWidth = 2;
@@ -68,11 +71,8 @@ const VoiceRecorder = ({ onResult }) => {
 
               for (let x = 0; x <= canvas.width; x += 2) {
                 const normalizedX = x / canvas.width;
-                // Sine wave combined with time-domain data for "real" jitter
                 const dataIndex = Math.floor(normalizedX * bufferLength);
                 const jitter = (dataArray[dataIndex] - 128) / 128;
-                
-                // Envelope to taper the ends
                 const envelope = Math.sin(normalizedX * Math.PI);
                 
                 const y = (canvas.height / 2) + 
@@ -86,11 +86,8 @@ const VoiceRecorder = ({ onResult }) => {
               ctx.stroke();
             };
 
-            // Layer 1: Primary
             drawWave('var(--primary)', 0.3, 1.0, 2, 0);
-            // Layer 2: Secondary
             drawWave('var(--primary)', 0.5, 0.7, 3, Math.PI / 2);
-            // Layer 3: Accent
             drawWave('var(--primary)', 0.8, 0.5, 4, Math.PI);
             
             ctx.globalAlpha = 1.0;
@@ -110,7 +107,6 @@ const VoiceRecorder = ({ onResult }) => {
       };
       startAudio();
     } else {
-      // Cleanup
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
@@ -125,7 +121,6 @@ const VoiceRecorder = ({ onResult }) => {
       }
       clearInterval(timerRef.current);
       
-      // Clear canvas
       if (canvasRef.current) {
         const ctx = canvasRef.current.getContext('2d');
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -154,7 +149,6 @@ const VoiceRecorder = ({ onResult }) => {
     setIsRecording(false);
     setIsDragging(false);
     
-    // Simulate processing delay
     setTimeout(() => {
       setIsProcessing(false);
       onResult({
@@ -184,7 +178,7 @@ const VoiceRecorder = ({ onResult }) => {
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && file.type.startsWith('audio/')) {
       processAudio('upload');
     }
   };
@@ -223,7 +217,7 @@ const VoiceRecorder = ({ onResult }) => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        "bg-card rounded-3xl p-6 md:p-8 shadow-sm border transition-all duration-300 flex flex-col items-center justify-center space-y-8 relative overflow-hidden",
+        "bg-card rounded-3xl p-4 md:p-5 shadow-sm border transition-all duration-300 flex flex-col items-center justify-center space-y-3 md:space-y-4 relative overflow-hidden h-full",
         isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "border-border"
       )}
     >
@@ -243,15 +237,33 @@ const VoiceRecorder = ({ onResult }) => {
         )}
       </AnimatePresence>
 
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold font-display text-foreground">Voice Capture</h2>
-        <p className="text-muted-foreground max-w-xs mx-auto text-sm">
-          Speak naturally, upload, or drag & drop a recording.
+      {!isRecording && !isProcessing && (
+        <div className="absolute top-3 right-3 z-10">
+          <input 
+            type="file" 
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="audio/*"
+            className="hidden" 
+          />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="w-9 h-9 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl flex items-center justify-center transition-all border border-primary/20 shadow-sm group"
+            title="Upload Audio"
+          >
+            <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
+          </button>
+        </div>
+      )}
+
+      <div className="text-center space-y-1">
+        <h2 className="text-lg md:text-xl font-bold font-display text-foreground">Speak Your Mind</h2>
+        <p className="text-muted-foreground max-w-xs mx-auto text-xs">
+          Just talk or drop an audio file. We're listening.
         </p>
       </div>
 
-      {/* Mic Button Section */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center py-1">
         <div className="relative">
           <AnimatePresence>
             {isRecording && (
@@ -269,7 +281,7 @@ const VoiceRecorder = ({ onResult }) => {
             onClick={handleToggleRecording}
             disabled={isProcessing}
             className={cn(
-              "relative z-10 w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl",
+              "relative z-10 w-20 h-20 md:w-22 md:h-22 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl",
               isRecording 
                 ? "bg-destructive hover:bg-destructive/90 scale-110" 
                 : "bg-primary hover:bg-primary/90 hover:scale-105",
@@ -277,31 +289,29 @@ const VoiceRecorder = ({ onResult }) => {
             )}
           >
             {isProcessing ? (
-              <Loader2 className="w-10 h-10 text-primary-foreground animate-spin" />
+              <Loader2 className="w-8 h-8 md:w-9 md:h-9 text-primary-foreground animate-spin" />
             ) : isRecording ? (
-              <Square className="w-10 h-10 text-destructive-foreground fill-current" />
+              <Square className="w-8 h-8 md:w-9 md:h-9 text-destructive-foreground fill-current" />
             ) : (
-              <Mic className="w-10 h-10 text-primary-foreground" />
+              <Mic className="w-8 h-8 md:w-9 md:h-9 text-primary-foreground" />
             )}
           </button>
         </div>
       </div>
 
-      {/* Timer & Status */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-1">
         <span className={cn(
-          "text-3xl font-mono font-bold",
+          "text-xl md:text-2xl font-mono font-bold",
           isRecording ? "text-destructive" : "text-muted-foreground/50"
         )}>
           {formatTime(timer)}
         </span>
-        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50">
-          {isProcessing ? "Analyzing Audio..." : isRecording ? "Recording Live" : "Ready to Record"}
+        <span className="text-[10px] md:text-xs font-semibold uppercase tracking-widest text-muted-foreground/50">
+          {isProcessing ? "Catching the vibe..." : isRecording ? "Listening Live" : "Ready to Listen"}
         </span>
       </div>
 
-      {/* Waveform Visualizer (Canvas) */}
-      <div className="w-full h-24 flex items-center justify-center px-4 bg-muted rounded-2xl overflow-hidden border border-border/50">
+      <div className="w-full flex-1 max-h-28 md:max-h-32 flex items-center justify-center px-4 bg-muted rounded-2xl overflow-hidden border border-border/50">
         <canvas 
           ref={canvasRef} 
           width={400} 
@@ -315,45 +325,6 @@ const VoiceRecorder = ({ onResult }) => {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Combined Drag & Drop + Upload Row */}
-      {!isRecording && !isProcessing && (
-        <div className="flex items-center gap-4 w-full">
-          <div className={cn(
-            "flex-1 border-2 border-dashed rounded-2xl p-4 transition-all flex items-center justify-center gap-3",
-            isDragging ? "border-primary bg-primary/5" : "border-border bg-muted"
-          )}>
-            <FileAudio className={cn("w-5 h-5 transition-colors", isDragging ? "text-primary" : "text-muted-foreground/30")} />
-            <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">
-              {isDragging ? "Release to Analyze" : "Drag & Drop Audio Here"}
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept="audio/*"
-              className="hidden" 
-            />
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              className="w-12 h-12 bg-muted hover:bg-muted/80 text-foreground rounded-xl flex items-center justify-center transition-all border border-border shadow-sm group"
-              title="Upload Audio"
-            >
-              <Upload className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Upload</span>
-          </div>
-        </div>
-      )}
-
-      {/* Privacy Note */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-full text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-        <ShieldCheck className="w-3 h-3 text-green-500" />
-        No raw audio is stored • Encrypted processing
       </div>
     </div>
   );

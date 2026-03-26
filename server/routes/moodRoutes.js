@@ -9,6 +9,7 @@ import {
   getAlerts,
   acknowledgeAlert,
   processAudio,
+  getUserStreak,
 } from "../controllers/moodController.js";
 import protect from "../middleware/authMiddleware.js";
 import { uploadMemory } from "../utils/uploadMiddleware.js";
@@ -31,6 +32,7 @@ router.post("/process-audio", protect, uploadMemory.single("audio"), processAudi
 router.get("/history", protect, getMoodHistory);
 router.get("/latest", protect, getLatestMood);
 router.get("/trend", protect, getMoodTrend);
+router.get("/streak", protect, getUserStreak);
 
 // Dashboard
 router.get("/dashboard", protect, getDashboard);

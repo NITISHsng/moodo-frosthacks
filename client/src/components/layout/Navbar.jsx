@@ -14,8 +14,8 @@ import {
   Palette
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../lib/utils';
-import { useTheme } from '../lib/ThemeContext';
+import { cn } from '../../lib/utils';
+import { useTheme } from '../../lib/ThemeContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
   DropdownMenuGroup,
-} from "./ui/dropdown-menu";
+} from '../ui/dropdown-menu';
 
 const Navbar = ({ activeTab, setActiveTab, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
