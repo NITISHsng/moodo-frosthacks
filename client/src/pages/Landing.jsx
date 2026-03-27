@@ -34,13 +34,19 @@ const Landing = ({ onLogin }) => {
       
       <PartnerLogos />
       
-      <StatsSection />
+      {/* <StatsSection /> */}
       
-      <WhyMoodoSection />
+      <div id="why-moodo" className="scroll-mt-20">
+        <WhyMoodoSection />
+      </div>
       
-      <HowItWorksSection />
+      <div id="how-it-works" className="scroll-mt-20">
+        <HowItWorksSection />
+      </div>
       
-      <FeaturesSection />
+      <div id="features" className="scroll-mt-20">
+        <FeaturesSection />
+      </div>
       
       <AuthFooter />
 

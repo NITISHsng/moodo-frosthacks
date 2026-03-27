@@ -15,8 +15,6 @@ const FeaturesSection = () => {
       features: [
         { title: "Real-Time Voice Feedback", desc: "Instant analysis as you speak.", icon: Activity },
         { title: "AI Voice Feature Extraction", desc: "Advanced acoustic pattern recognition.", icon: Brain },
-        { title: "Voice-to-Text Conversion", desc: "Seamless transcription for context.", icon: FileText },
-        { title: "Live Sound Intensity Visualization", desc: "Dynamic audio wave monitoring.", icon: Zap },
         { title: "Lightweight & Real-Time Processing", desc: "Fast, efficient emotional detection.", icon: Cpu },
         { title: "Offline-Capable Analysis", desc: "Works even without internet.", icon: WifiOff },
       ]
@@ -25,12 +23,9 @@ const FeaturesSection = () => {
       title: "Analytics & Insights",
       icon: BarChart3,
       features: [
-        { title: "Sentiment Analysis Engine", desc: "Deep linguistic emotional detection.", icon: MessageSquare },
         { title: "Mood Score Generation", desc: "Daily emotional health metrics.", icon: Sparkles },
         { title: "Time-Series Mood Tracking", desc: "Visualize changes over time.", icon: LineChart },
-        { title: "Emotional Trend Detection", desc: "Identify recurring patterns.", icon: Search },
         { title: "Smart Insights & Patterns", desc: "AI-driven emotional discovery.", icon: Brain },
-        { title: "Personalized Mood Baseline", desc: "Adapted to your unique voice.", icon: UserCheck },
         { title: "Emotion History Timeline", desc: "Complete log of your journey.", icon: History },
       ]
     },
@@ -42,8 +37,6 @@ const FeaturesSection = () => {
         { title: "Interactive Dashboard", desc: "All your insights in one place.", icon: LayoutDashboard },
         { title: "Secure User Authentication", desc: "Enterprise-grade protection.", icon: Lock },
         { title: "Privacy-First Architecture", desc: "Your data stays yours, always.", icon: ShieldCheck },
-        { title: "Actionable Mental Wellness Suggestions", desc: "Personalized tips for improvement.", icon: HeartPulse },
-        { title: "Non-Clinical, Safe Experience", desc: "Designed for everyday support.", icon: CheckCircle2 },
       ]
     }
   ];

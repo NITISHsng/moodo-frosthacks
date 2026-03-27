@@ -32,7 +32,7 @@ const WhyMoodoSection = () => {
             className="space-y-8"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-bold border border-primary/20">
-              <Sparkles className="w-4 h-4" /> Why Choose MOODO?
+              Why Choose MOODO?
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold font-display leading-tight text-foreground">
               The smarter way to <br />
@@ -76,32 +76,15 @@ const WhyMoodoSection = () => {
             transition={{ duration: 0.8 }}
             className="relative"
           >
-            <div className="aspect-[4/5] rounded-[3rem] bg-muted overflow-hidden relative group">
-              <img
-                src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=800"
-                alt="Person using the app"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            <div className="rounded-[3rem] bg-muted overflow-hidden relative group">
+              <img 
+                src="/mental-health-illustration.avif" 
+                alt="Person using the app" 
+                className="w-full h-full object-cover transition-transform duration-700"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-linear-to-t from-foreground/60 to-transparent" />
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.5 }}
-                className="absolute bottom-8 left-8 right-8 p-6 rounded-2xl bg-card/80 backdrop-blur-md border border-border shadow-xl text-card-foreground"
-              >
-                <p className="text-lg font-medium italic">
-                  "MOODO helped me identify that my stress peaks every Tuesday
-                  morning. Now I've adjusted my schedule and feel much better."
-                </p>
-                <p className="mt-4 font-bold text-primary">
-                  — Alex Chen, Beta User
-                </p>
-              </motion.div>
+              <div className="absolute inset-0" />
             </div>
-            <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary rounded-3xl -z-10 rotate-12" />
-            <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-emerald-400 rounded-full -z-10 blur-2xl opacity-50" />
           </motion.div>
         </div>
       </div>

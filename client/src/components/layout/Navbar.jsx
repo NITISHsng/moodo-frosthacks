@@ -52,7 +52,7 @@ const Navbar = ({ activeTab, setActiveTab, onLogout }) => {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Mic className="text-primary-foreground w-5 h-5" />
               </div>
-              <span className="text-xl font-bold font-display tracking-tight text-foreground">MOODO</span>
+              <span className="text-xl font-bold font-display tracking-tight text-foreground">MOsssODO</span>
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
               {tabs.map((tab) => (
