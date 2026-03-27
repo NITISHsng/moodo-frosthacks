@@ -1,12 +1,15 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Sidebar, TopHeader } from "./components";
+import { AdminDashboard, Sidebar, TopHeader } from "./components";
 import { useAuth } from "./hooks";
-import { Dashboard, History, Landing, Profile, Result, Trends } from "./pages";
+import { AdminLogin, Dashboard, History, Landing, Profile, Result, Trends } from "./pages";
 
 export default function App() {
   const { isAuthenticated, logout } = useAuth();
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    return localStorage.getItem("isAdminAuthenticated") === "true";
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
@@ -17,8 +20,43 @@ export default function App() {
     window.location.reload();
   };
 
-  if (!isAuthenticated) {
+  const handleAdminLogout = () => {
+    localStorage.removeItem("isAdminAuthenticated");
+    setIsAdminAuthenticated(false);
+  };
+
+  const isAdminPath = location.pathname.startsWith("/admin");
+
+  if (!isAuthenticated && !isAdminPath) {
     return <Landing onLogin={() => window.location.reload()} />;
+  }
+
+  if (isAdminPath) {
+    return (
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route
+            path="/admin/login"
+            element={
+              <AdminLogin
+                onLoginSuccess={() => setIsAdminAuthenticated(true)}
+              />
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              isAdminAuthenticated ? (
+                <AdminDashboard onLogout={handleAdminLogout} />
+              ) : (
+                <Navigate to="/admin/login" replace />
+              )
+            }
+          />
+          <Route path="*" element={<Navigate to="/admin/login" replace />} />
+        </Routes>
+      </AnimatePresence>
+    );
   }
 
   return (

@@ -28,6 +28,7 @@ export { default as SettingsItem } from './profile/SettingsItem';
 export { default as FluctuationItem } from './trends/FluctuationItem';
 export { default as MoodChart } from './trends/MoodChart';
 export { default as TrendCard } from './trends/TrendCard';
+export { default as AdminDashboard } from './AdminDashboard';
 
 // Landing Page Components
 export * from './landing';
