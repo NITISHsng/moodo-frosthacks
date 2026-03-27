@@ -4,24 +4,23 @@ import numpy as np
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import os
 from datetime import datetime
-import whisper
+import speech_recognition as sr
 
 app = Flask(__name__)
 
 analyzer = SentimentIntensityAnalyzer()
 
-# Load Whisper model (using 'base' for balance between speed and accuracy)
-# Options: 'tiny', 'base', 'small', 'medium', 'large'
-whisper_model = whisper.load_model("base")
 
-
-# 🎙️ Speech-to-Text using OpenAI Whisper
+# 🎙️ Speech-to-Text
 def speech_to_text(file_path):
+    recognizer = sr.Recognizer()
+
     try:
-        result = whisper_model.transcribe(file_path, fp16=False)
-        text = result["text"].strip()
-    except Exception as e:
-        print(f"Whisper transcription error: {e}")
+        with sr.AudioFile(file_path) as source:
+            audio = recognizer.record(source)
+
+        text = recognizer.recognize_google(audio)
+    except:
         text = ""
 
     return text

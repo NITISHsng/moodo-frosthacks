@@ -20,7 +20,7 @@ Audio 🎤 → Feature Extraction → Speech-to-Text → Sentiment Analysis → 
 * **Flask** (API server)
 * **Librosa** (audio processing)
 * **NumPy**
-* **OpenAI Whisper** (speech-to-text)
+* **SpeechRecognition** (speech-to-text)
 * **NLTK / VADER** (sentiment analysis)
 
 ---
@@ -79,7 +79,7 @@ pip install -r requirements.txt
 ## 5. Install Speech-to-Text Dependencies
 
 ```bash
-pip install openai-whisper pydub
+pip install SpeechRecognition pydub
 ```
 
 ---
@@ -161,7 +161,7 @@ http://localhost:5001
 
 # 🎙️ Speech-to-Text (Task 5)
 
-* Converts audio input into text using **OpenAI Whisper**
+* Converts audio input into text using **Google Speech Recognition**
 * Works best with:
 
   * Clear speech
@@ -298,6 +298,6 @@ AI Module developed for Hackathon Project 🚀
 
 * Use `.wav` format only
 * Ensure clear audio input
-* Whisper runs locally (no internet required for transcription)
+* Internet required for speech recognition
 
 ---
