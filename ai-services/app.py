@@ -208,6 +208,41 @@ def generate_insight(features, sentiment_score):
         return "Analysis complete"
 
 
+# 🏥 Health Check Endpoint
+@app.route('/health', methods=['GET'])
+def health():
+    """Health check endpoint for service monitoring"""
+    return jsonify({
+        "status": "ready",
+        "service": "ai-analysis",
+        "timestamp": datetime.utcnow().isoformat()
+    }), 200
+
+
+# 🔥 Warmup Endpoint
+@app.route('/warmup', methods=['GET'])
+def warmup():
+    """Warmup endpoint to initialize libraries and prevent cold starts"""
+    try:
+        # Initialize sentiment analyzer
+        _ = analyzer.polarity_scores("warmup test")
+        
+        # Preload numpy operations
+        _ = np.array([1, 2, 3])
+        
+        return jsonify({
+            "status": "warmed",
+            "message": "Service ready for analysis",
+            "timestamp": datetime.utcnow().isoformat()
+        }), 200
+    except Exception as e:
+        print(f"Warmup error: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+
 # 🔥 API Endpoint
 @app.route('/analyze', methods=['POST'])
 def analyze():
